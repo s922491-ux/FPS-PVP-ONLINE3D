@@ -352,7 +352,7 @@ function renderWeaponFilters() {
 function connect() {
   if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-  ws = new WebSocket(`${protocol}//${location.host}`);
+  ws = new WebSocket(`${protocol}//${location.host}/websocket`);
 
   ws.onopen = () => {
     notice.textContent = "接続しました。ルームを選ぶか作成してください。";
