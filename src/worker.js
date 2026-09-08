@@ -122,8 +122,9 @@ export class GameServer extends DurableObject {
   }
 
   const bodyY = (target.y||0) + (target.crouching ? 1.05 : 1.55);
-        this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});return}
-    });
+        this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});
+return;
+}
     server.addEventListener('close',()=>{if(player?.room)this.leave(player)});
     return new Response(null,{status:101,webSocket:client});
   }
