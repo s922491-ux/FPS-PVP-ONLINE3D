@@ -56,7 +56,7 @@ export default {
 };
 
 export class GameServer extends DurableObject {
-  constructor(state, env){ this.state=state; this.env=env; this.rooms=new Map(); this.players=new Map(); }
+  constructor(state, env){ super(state, env); this.state=state; this.env=env; this.rooms=new Map(); this.players=new Map(); }
   send(ws,data){ try{if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(data));}catch{} }
   sendPlayer(p,data){this.send(p.ws,data)}
   broadcast(room,data,exceptId=null){for(const p of room.players.values())if(p.id!==exceptId)this.sendPlayer(p,data)}
