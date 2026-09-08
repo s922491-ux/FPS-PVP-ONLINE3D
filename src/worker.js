@@ -1,4 +1,5 @@
 import { WEAPONS } from './weapons.js';
+import { DurableObject } from 'cloudflare:workers';
 
 const MAX_PLAYERS = 8;
 const KILL_LIMIT = 10;
