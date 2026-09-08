@@ -75,7 +75,7 @@ export class GameServer extends DurableObject {
   quickMatch(name){let room=[...this.rooms.values()].find(r=>!r.started&&r.players.size>0&&r.players.size<MAX_PLAYERS);if(!room)room=this.createRoom('QUICK MATCH');return room}
   async fetch(request){
     if(request.headers.get('Upgrade')!=='websocket')return new Response('Expected WebSocket',{status:426});
-    const pair=new WebSocketPair();const [client,server]=Object.values(pair);server.accept();
+    const pair=new WebSocketPair();const [client,server]=Object.values(pair);this.ctx.acceptWebSocket(server);
     let player=null;
     this.send(server,{type:'room_list',rooms:this.roomList()});
     server.addEventListener('message',ev=>{let m;try{m=JSON.parse(ev.data)}catch{return}
