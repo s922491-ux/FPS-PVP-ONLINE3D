@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fps-pvp-original-site",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-06",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "GAME_SERVER",
+        "class_name": "GameServer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["GameServer"]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
