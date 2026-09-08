@@ -25,6 +25,9 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/health') return new Response(JSON.stringify({ok:true,service:'fps-pvp',version:'cloudflare'}),{headers:{'content-type':'application/json'}});
     if (url.pathname === '/ws-check') {
+    
+    }
+    
     if (url.pathname === '/do-check') {
   try {
     const id = env.GAME_SERVER.idFromName('debug-check');
