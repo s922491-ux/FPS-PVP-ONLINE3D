@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Test</title>
+</head>
+<body>
+  <h1>WebSocket 接続テスト</h1>
+  <button onclick="testWS()">接続テスト</button>
+  <pre id="result">まだテストしていません</pre>
+
+  <script>
+    function testWS() {
+      const result = document.getElementById("result");
+      result.textContent = "接続中…";
+
+      const ws = new WebSocket(
+        "wss://fps-pvp-online3d.s922491.workers.dev"
+      );
+
+      ws.onopen = () => {
+        result.textContent =
+          "✅ WebSocket接続成功！\n" +
+          "Cloudflare Worker → Durable Object が接続できています。";
+        ws.close();
+      };
+
+      ws.onerror = () => {
+        result.textContent =
+          "❌ WebSocket接続失敗\n" +
+          "WorkerへのWebSocket接続で問題があります。";
+      };
+
+      ws.onclose = (event) => {
+        if (result.textContent === "接続中…") {
+          result.textContent =
+            "❌ 接続できませんでした\n" +
+            "close code: " + event.code;
+        }
+      };
+    }
+  </script>
+</body>
+</html>
