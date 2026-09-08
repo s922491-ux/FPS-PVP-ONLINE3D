@@ -24,6 +24,13 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/health') return new Response(JSON.stringify({ok:true,service:'fps-pvp',version:'cloudflare'}),{headers:{'content-type':'application/json'}});
+    if (url.pathname === '/ws-check') {
+  return new Response(JSON.stringify({
+    gameServer: !!env.GAME_SERVER
+  }), {
+    headers: { 'content-type': 'application/json' }
+  });
+}
     if (request.headers.get('Upgrade') === 'websocket') {
       const id = env.GAME_SERVER.idFromName('global-match-server');
       return env.GAME_SERVER.get(id).fetch(request);
