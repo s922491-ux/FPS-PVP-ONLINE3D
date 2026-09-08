@@ -74,7 +74,7 @@ export class GameServer extends DurableObject {
   finishMatch(room){if(!room?.started)return;room.started=false;const ranking=[...room.players.values()].sort((a,b)=>b.kills-a.kills).map(p=>({id:p.id,name:p.name,kills:p.kills,deaths:p.deaths}));for(const p of room.players.values()){p.ready=p.id===room.hostId;this.sendPlayer(p,{type:'match_end',ranking})}this.broadcastLobby(room);this.broadcastRoomList()}
   quickMatch(name){let room=[...this.rooms.values()].find(r=>!r.started&&r.players.size>0&&r.players.size<MAX_PLAYERS);if(!room)room=this.createRoom('QUICK MATCH');return room}
   async fetch(request){
-    if(request.headers.get('Upgrade')!=='websocket')return new Response('Expected WebSocket',{status:426});
+    if (url.pathname === '/websocket' && request.headers.get('Upgrade') === 'websocket') return new Response('Expected WebSocket',{status:426});
     const pair=new WebSocketPair();const [client,server]=Object.values(pair);server.accept();
     let player=null;
     this.send(server,{type:'room_list',rooms:this.roomList()});
