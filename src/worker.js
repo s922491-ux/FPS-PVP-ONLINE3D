@@ -125,6 +125,7 @@ export class GameServer extends DurableObject {
         this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});
 return;
 }
+});
     server.addEventListener('close',()=>{if(player?.room)this.leave(player)});
     return new Response(null,{status:101,webSocket:client});
   }
