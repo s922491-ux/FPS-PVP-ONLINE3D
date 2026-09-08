@@ -55,7 +55,7 @@ export default {
   }
 };
 
-export class GameServer {
+export class GameServer extends DurableObject {
   constructor(state, env){ this.state=state; this.env=env; this.rooms=new Map(); this.players=new Map(); }
   send(ws,data){ try{if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(data));}catch{} }
   sendPlayer(p,data){this.send(p.ws,data)}
