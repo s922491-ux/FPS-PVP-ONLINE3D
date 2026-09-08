@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORIGINAL FPS PVP</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#070a0e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="./icon.svg">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#070a0e;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;background:#e8eef5;color:#10151b;font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}input{border:1px solid #45515e;border-radius:8px;padding:10px 12px;background:#0c1117;color:#fff;outline:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;inset:0;pointer-events:none;text-shadow:0 2px 4px #000;display:none}
+.top{position:absolute;top:16px;left:16px;font-size:18px}.room{position:absolute;top:16px;right:16px;font-size:14px;opacity:.9}
+.weapon{position:absolute;right:20px;bottom:64px;font-size:16px;opacity:.9}.ammo{position:absolute;right:20px;bottom:18px;font-size:28px}.cross{position:absolute;left:50%;top:50%;font-size:25px;transform:translate(-50%,-50%)}
+#lobby{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center,#1b2633,#070a0e 70%);z-index:10}
+.panel{width:min(900px,92vw);max-height:90vh;overflow:auto;background:rgba(11,16,23,.92);border:1px solid #3a4653;border-radius:16px;padding:24px;box-shadow:0 25px 80px #0008}
+h1,h2{margin:0 0 8px}.sub{opacity:.7;margin-bottom:18px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row input{flex:1;min-width:180px}
+.rooms{margin-top:18px;border:1px solid #27313c;border-radius:10px;overflow:hidden}.roomrow{display:grid;grid-template-columns:1fr 100px 120px;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #202933}.roomrow:last-child{border-bottom:0}.roomname{font-weight:700}.muted{opacity:.65;font-size:13px}
+#lobbyView{display:none}.lobbyHeader{display:flex;justify-content:space-between;gap:12px;align-items:center}.players{margin:18px 0;border:1px solid #27313c;border-radius:10px;overflow:hidden}.player{display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #202933}.player:last-child{border:0}.badge{font-size:12px;border:1px solid #55616e;border-radius:999px;padding:3px 8px;margin-left:6px}.ready{font-size:12px;opacity:.8}
+#notice{min-height:22px;margin-top:12px;color:#a9c7df}
+#death{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#0008;z-index:5;font-size:36px;font-weight:800}
+@media(max-width:650px){.roomrow{grid-template-columns:1fr 80px 95px}.panel{padding:16px}}
+
+#hud{font-family:Arial,Helvetica,sans-serif;letter-spacing:.4px}
+#hud:after{content:"";position:absolute;inset:0;background:radial-gradient(circle,transparent 45%,rgba(0,0,0,.48) 100%);pointer-events:none}
+.top{top:18px;left:20px;font-weight:800;background:rgba(4,8,12,.38);padding:8px 12px;border-left:3px solid #fff;border-radius:4px;backdrop-filter:blur(5px)}
+.top b{font-size:20px}.room{top:18px;right:20px;background:rgba(4,8,12,.38);padding:8px 12px;border-radius:4px;backdrop-filter:blur(5px)}
+.weapon{right:22px;bottom:112px;text-align:right;font-weight:800;text-transform:uppercase}.weapon span{font-size:20px}.weapon #weaponMeta{font-size:11px;opacity:.62;margin-top:3px}
+.ammo{right:20px;bottom:24px;font-weight:800}.ammo b{font-size:42px}.ammo .slash{opacity:.45;margin:0 5px}
+.cross{font-size:22px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 8px #000}
+.cross:before,.cross:after{content:"";position:absolute;background:#fff}.cross:before{width:4px;height:4px;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%}.cross{color:transparent}
+#hitmarker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.7);font-size:44px;font-weight:900;opacity:0;color:#fff;transition:opacity .08s,transform .08s;z-index:4}.hit-on{opacity:1!important;transform:translate(-50%,-50%) scale(1)!important}
+#damageFlash{position:absolute;inset:0;background:rgba(210,25,25,.18);opacity:0;pointer-events:none;transition:opacity .08s;z-index:3}.damage-on{opacity:1!important}
+#reloadBar{position:absolute;left:50%;bottom:92px;width:230px;height:4px;background:#ffffff22;transform:translateX(-50%);opacity:0;z-index:2;border-radius:4px;overflow:hidden}#reloadBar div{height:100%;width:0;background:#fff}
+#killfeed{position:absolute;top:64px;right:20px;width:280px;text-align:right;font-size:13px}.feed{margin:4px 0;padding:5px 8px;background:#05080ccc;border-right:2px solid #fff;border-radius:3px}
+#scoreboard{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(720px,90vw);background:rgba(5,8,12,.94);border:1px solid #66717c;border-radius:10px;padding:18px;z-index:8;box-shadow:0 30px 90px #000b}.scoreTitle{font-weight:900;font-size:18px;border-bottom:1px solid #333;padding-bottom:10px;margin-bottom:8px}.scoreTitle span{float:right;font-size:11px;opacity:.5}.scoreRow{display:grid;grid-template-columns:1fr 80px 80px;gap:10px;padding:9px;border-bottom:1px solid #20252b}.scoreRow.me{background:#ffffff12;font-weight:800}
+#reloadLabel{position:absolute;left:50%;bottom:101px;transform:translateX(-50%);font-size:10px;letter-spacing:2px;opacity:.7}#vignette{position:absolute;inset:0;box-shadow:inset 0 0 120px #000b;pointer-events:none}
+#statusBadge{position:absolute;left:20px;bottom:20px;font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:1.5px}
+/* weapon viewmodel */
+#game{filter:saturate(.92) contrast(1.04)}
+@media(max-width:650px){.weapon{right:12px}.ammo{right:12px}.top{left:10px}.room{right:10px}}
+
+/* tactical FPS presentation */
+#scope{display:none;position:absolute;inset:0;background:radial-gradient(circle,transparent 28%,rgba(0,0,0,.9) 30%,rgba(0,0,0,.96) 58%,rgba(0,0,0,1) 100%);z-index:6}
+#scope:before{content:"";position:absolute;left:50%;top:50%;width:52vw;height:52vw;max-width:700px;max-height:700px;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.65);border-radius:50%;box-shadow:0 0 0 100vmax rgba(0,0,0,.78)}
+#scope:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px;color:#f55;text-shadow:0 0 8px #000}
+#damageDir{position:absolute;left:50%;top:50%;width:0;height:0;z-index:7;opacity:0;transition:opacity .08s}
+#damageDir:before{content:"";position:absolute;left:-7px;top:-190px;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:52px solid rgba(255,45,45,.9);filter:drop-shadow(0 0 5px #000)}
+.damage-dir-on{opacity:1!important}
+#stance{position:absolute;left:20px;bottom:42px;font-size:10px;letter-spacing:2px;opacity:.65}
+#controlsHint{position:absolute;left:20px;bottom:58px;font-size:10px;opacity:.42}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="lobby">
+  <div class="panel">
+    <div id="nameView">
+      <h1>3D FPS PVP</h1>
+      <div class="sub">ORIGINAL ONLINE FPS · アクセスすると自動で対戦ルームへ参加します</div>
+      <div class="row">
+        <input id="name" maxlength="16" placeholder="プレイヤー名" value="Player">
+        <button id="refresh">ルーム更新</button>
+        <button id="create">ルーム作成</button>
+      </div>
+      <div id="notice">サーバーへ接続しています…</div>
+      <div class="rooms" id="rooms"></div>
+    </div>
+
+    <div id="lobbyView">
+      <div class="lobbyHeader">
+        <div><h2 id="roomTitle">Room</h2><div class="muted" id="roomCount">0 / 8</div></div>
+        <div class="row"><button id="leave">ルームを退出</button><button id="ready">準備完了</button><button id="start" style="display:none">対戦開始</button></div>
+      </div>
+      <div class="players" id="players"></div>
+      <div class="muted">ホストは「対戦開始」、参加者は「準備完了」を押してください。2人以上で開始できます。</div>
+      <div id="arsenal" style="margin-top:16px">
+        <h3 style="margin:0 0 8px">武器庫 — 120種類</h3>
+        <div class="row" id="weaponFilters"></div>
+        <div id="weaponGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="death">YOU ARE DOWN</div><div id="result" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:#000b;z-index:20"><div class="panel" style="max-width:620px"><h2>MATCH RESULT</h2><div id="resultBody"></div><button id="backLobby" style="margin-top:14px">ロビーへ戻る</button></div></div>
+<div id="hud">
+  <div id="scope"></div><div id="damageDir"></div>
+  <div class="top">HP: <b id="hp">100</b>　K/D: <b id="kd">0 / 0</b></div>
+  <div class="room" id="roomHud"></div>
+  <div class="cross">+</div>
+  <div class="weapon"><span id="weaponName">Nova-01</span><div id="weaponMeta"></div></div>
+  <div class="ammo"><b id="mag">30</b> <span class="slash">/</span> <span id="reserve">90</span></div>
+  <div id="reloadLabel">RELOADING</div><div id="reloadBar"><div></div></div><div id="vignette"></div><div id="statusBadge">LIVE • ONLINE PVP</div><div id="stance">READY</div><div id="controlsHint">E SWITCH　R RELOAD　RSHIFT ADS　LSHIFT SPRINT　C CROUCH　SPACE JUMP　G GRENADE</div>
+  <div id="hitmarker">×</div>
+  <div id="damageFlash"></div>
+  <div id="killfeed"></div>
+  <div id="scoreboard"><div class="scoreTitle">SCOREBOARD <span>ESC</span></div><div id="scoreRows"></div></div>
+</div>
+
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}</script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
