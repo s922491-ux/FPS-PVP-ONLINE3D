@@ -1,0 +1,14 @@
+{
+  "name": "ORIGINAL FPS PVP",
+  "short_name": "ORIGINAL FPS",
+  "description": "8人オンライン対戦対応のオリジナル3D FPS",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#070a0e",
+  "theme_color": "#070a0e",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
