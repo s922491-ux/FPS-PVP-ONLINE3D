@@ -46,7 +46,6 @@ export default {
     });
   }
 }
-}
     if (request.headers.get('Upgrade') === 'websocket') {
       const id = env.GAME_SERVER.idFromName('global-match-server');
       return env.GAME_SERVER.get(id).fetch(request);
