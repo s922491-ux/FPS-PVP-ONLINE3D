@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "fps-pvp-original-site",
+  "name": "fps-pvp-online3d",
   "main": "src/worker.js",
   "compatibility_date": "2026-09-06",
   "assets": {
