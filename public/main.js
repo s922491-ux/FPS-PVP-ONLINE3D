@@ -75,7 +75,7 @@ box(-12, -10, 9, 4, 3); box(10, -5, 4, 3, 13);
 box(-5, 14, 13, 3, 3); box(17, 16, 7, 4, 4);
 box(-19, 19, 5, 3, 9);
 // Multi-level combat lanes: platforms, catwalks, ramps and cover
-const platformMat=new THREE.MeshStandardMaterial({color:0x3d454c,roughness:.78,metalness:.28,map:wallTex});
+const platformMat=new THREE.MeshStandardMaterial({color:0x3d454c,roughness:.78,metalness:.28});
 function platform(x,y,z,w,h,d){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),platformMat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;scene.add(m);return m;}
 platform(-20,3.2,0,9,.55,5); platform(20,3.2,0,9,.55,5); platform(0,2.6,22,10,.5,5); platform(0,2.6,-22,10,.5,5);
 function ramp(x,y,z,w,h,d,rot=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),platformMat);m.position.set(x,y,z);m.rotation.z=rot;m.castShadow=m.receiveShadow=true;scene.add(m);}
