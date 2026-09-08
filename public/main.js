@@ -52,7 +52,7 @@ const crateMat = new THREE.MeshStandardMaterial({color:0x343b42,roughness:.72,me
 const stripeMat = new THREE.MeshStandardMaterial({color:0xb48a42,roughness:.5});
 function crate(x,z,s=2){ const g=new THREE.Group(); const c=new THREE.Mesh(new THREE.BoxGeometry(s,s,s),crateMat); c.position.y=s/2; c.castShadow=c.receiveShadow=true; g.add(c); const stripe=new THREE.Mesh(new THREE.BoxGeometry(s+.02,.16,s+.02),stripeMat); stripe.position.y=s*.62; stripe.castShadow=true; g.add(stripe); g.position.set(x,0,z); scene.add(g); }
 crate(-7,-18,2.2); crate(-4,-18,2.2); crate(14,10,2.6); crate(17,10,1.7); crate(-20,4,2.0);
-const pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.11,5.5,8),new THREE.MeshStandardMaterial({color:0x05070a,metalness:.55,roughness:.34}));
+function lightPole(x,z){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.11,5.5,8),new THREE.MeshStandardMaterial({color:0x05070a,metalness:.55,roughness:.34}));pole.position.set(x,2.75,z);pole.castShadow=true;scene.add(pole);const l=new THREE.PointLight(0xffd9a3,18,14);l.position.set(x,5.5,z);scene.add(l);}
 lightPole(-28,-28); lightPole(28,28); lightPole(-28,28); lightPole(28,-28);
 
 
