@@ -25,6 +25,28 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/health') return new Response(JSON.stringify({ok:true,service:'fps-pvp',version:'cloudflare'}),{headers:{'content-type':'application/json'}});
     if (url.pathname === '/ws-check') {
+      if (url.pathname === '/do-check') {
+  try {
+    const id = env.GAME_SERVER.idFromName('debug-check');
+    const res = await env.GAME_SERVER.get(id).fetch(
+      new Request(new URL('/debug', request.url))
+    );
+    return new Response(JSON.stringify({
+      ok: true,
+      status: res.status
+    }), {
+      headers: { 'content-type': 'application/json' }
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({
+      ok: false,
+      error: String(e)
+    }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' }
+    });
+  }
+}
   return new Response(JSON.stringify({
     gameServer: !!env.GAME_SERVER
   }), {
