@@ -479,7 +479,7 @@ addEventListener("keydown", e => {
   keys[e.code] = true;
   if(e.repeat && ['KeyE','KeyR','KeyG','Space'].includes(e.code)) return;
   if (/^Digit[1-9]$/.test(e.code)) { const n=Number(e.code.slice(-1))-1; if(WEAPONS[n]) selectWeapon(n); }
-  if(e.code==='Digit0') selectWeapon(9);
+  if(e.code==='Digit0') send({type:'self_kill'});
   if(e.code==='KeyE') swapWeapon();
   if(e.code==='KeyR'){ playReload(); startReloadVisual(); send({type:'reload'}); }
   if(e.code==='KeyL'){ send({type:'self_respawn'}); }
