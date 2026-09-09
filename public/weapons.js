@@ -2038,7 +2038,7 @@ export const WEAPONS = [
     "spread": 0.008,
     "headMultiplier": 1.35,
     "slot": "primary"
-  }
+  },
       {
     "id": "minigun_special",
     "name": "Vulcan-M",
