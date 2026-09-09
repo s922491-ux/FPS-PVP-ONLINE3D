@@ -256,6 +256,8 @@ function createBossMesh(boss){
 
   g.position.set(boss.x,0,boss.z);
   g.userData.boss = true;
+  g.userData.hp = boss.hp;
+  g.userData.maxHp = boss.maxHp;
 
   scene.add(g);
   bossMesh = g;
