@@ -257,26 +257,153 @@ finishMatch(room){
   this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});
   return;
 }
-      if(m.type==='shoot'){const w=getWeapon(player.weaponId),now=Date.now(),minInterval=Math.max(45,Math.round(60000/w.fireRate));if(player.reloading||player.dead||player.mag<=0||now-player.lastShot<minInterval)return;player.lastShot=now;player.mag--;this.broadcast(room,{type:'shoot',id:player.id});let target=null,best=Infinity;const eyeY=(player.y||0)+(player.crouching?1.15:1.72),dirX=Math.sin(player.yaw)*Math.cos(player.pitch),dirY=-Math.sin(player.pitch),dirZ=-Math.cos(player.yaw)*Math.cos(player.pitch);for(const q of room.players.values()){if(q===player||q.dead)continue;const tx=q.x-player.x,tz=q.z-player.z,d=Math.hypot(tx,tz);if(d>w.range||segmentHitsSolid(player.x,player.z,q.x,q.z))continue;const bodyY=(q.y||0)+(q.crouching?1.05:1.55),vx=q.x-player.x,vy=bodyY-eyeY,vz=q.z-player.z,len=Math.hypot(vx,vy,vz)||1,dot=(vx/len)*dirX+(vy/len)*dirY+(vz/len)*dirZ,tol=Math.max(.035,.34/Math.max(1,d));if(dot>1-tol&&d<best){best=d;target=q}}
-        if(target){
-  const damage = w.damage || 10;
-  target.hp -= damage;
+     if(m.type==='shoot'){
+  const w=getWeapon(player.weaponId);
+  const now=Date.now();
+  const minInterval=Math.max(45,Math.round(60000/w.fireRate));
 
-  if(target.hp <= 0){
-    target.hp = 0;
-    target.dead = true;
-    target.deaths++;
-    player.kills++;
-    this.broadcast(room,{
-      type:"death",
-      victim:target.id,
-      killer:player.id
-    });
+  if(player.reloading||player.dead||player.mag<=0||now-player.lastShot<minInterval)return;
+
+  player.lastShot=now;
+  player.mag--;
+
+  this.broadcast(room,{
+    type:'shoot',
+    id:player.id
+  });
+
+  // 👑 BOSSへの射撃判定
+  if(room.boss?.active){
+    const dx=Math.sin(player.yaw)*Math.cos(player.pitch);
+    const dz=-Math.cos(player.yaw)*Math.cos(player.pitch);
+
+    const bx=room.boss.x-player.x;
+    const bz=room.boss.z-player.z;
+    const bossDist=Math.hypot(bx,bz);
+
+    if(bossDist<=w.range){
+      const len=Math.hypot(bx,bz)||1;
+      const dot=(bx/len)*dx+(bz/len)*dz;
+
+      if(dot>.965){
+        const damage=w.damage||10;
+
+        room.boss.hp=Math.max(0,room.boss.hp-damage);
+
+        this.broadcast(room,{
+          type:'boss_hit',
+          hp:room.boss.hp,
+          maxHp:room.boss.maxHp,
+          attacker:player.id
+        });
+
+        if(room.boss.hp<=0){
+          room.boss.active=false;
+          room.boss.defeatedAt=Date.now();
+
+          this.broadcast(room,{
+            type:'boss_defeated',
+            killer:player.id,
+            killerName:player.name
+          });
+        }
+      }
+    }
   }
 
-  const bodyY = (target.y||0) + (target.crouching ? 1.05 : 1.55);
-        this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});
-return;
+  // 🔫 通常プレイヤーへの射撃
+  let target=null;
+  let best=Infinity;
+
+  const eyeY=(player.y||0)+(player.crouching?1.15:1.72);
+
+  const dirX=Math.sin(player.yaw)*Math.cos(player.pitch);
+  const dirY=-Math.sin(player.pitch);
+  const dirZ=-Math.cos(player.yaw)*Math.cos(player.pitch);
+
+  for(const q of room.players.values()){
+    if(q===player||q.dead)continue;
+
+    const tx=q.x-player.x;
+    const tz=q.z-player.z;
+    const d=Math.hypot(tx,tz);
+
+    if(d>w.range||segmentHitsSolid(player.x,player.z,q.x,q.z))continue;
+
+    const bodyY=(q.y||0)+(q.crouching?1.05:1.55);
+
+    const vx=q.x-player.x;
+    const vy=bodyY-eyeY;
+    const vz=q.z-player.z;
+    const len=Math.hypot(vx,vy,vz)||1;
+
+    const dot=
+      (vx/len)*dirX+
+      (vy/len)*dirY+
+      (vz/len)*dirZ;
+
+    const tol=Math.max(.035,.34/Math.max(1,d));
+
+    if(dot>1-tol&&d<best){
+      best=d;
+      target=q;
+    }
+  }
+
+  if(target){
+    const damage=w.damage||10;
+
+    target.hp-=damage;
+
+    this.sendPlayer(target,{
+      type:'player_update',
+      player:publicPlayer(target)
+    });
+
+    this.broadcast(room,{
+      type:'hit',
+      victim:target.id,
+      hp:Math.max(0,target.hp),
+      killer:player.id,
+      attackerX:player.x,
+      attackerZ:player.z
+    });
+
+    if(target.hp<=0){
+      target.hp=0;
+      target.dead=true;
+      target.deaths++;
+      player.kills++;
+
+      this.broadcast(room,{
+        type:'death',
+        victim:target.id,
+        killer:player.id
+      });
+
+      setTimeout(()=>{
+        if(room.players.has(target.id)){
+          this.resetPlayer(target);
+
+          this.broadcast(room,{
+            type:'respawn',
+            player:publicPlayer(target)
+          });
+        }
+      },2000);
+
+      if(player.kills>=KILL_LIMIT){
+        setTimeout(()=>this.finishMatch(room),250);
+      }
+    }
+  }
+
+  this.sendPlayer(player,{
+    type:'player_update',
+    player:publicPlayer(player)
+  });
+
+  return;
 }
 }
 });
