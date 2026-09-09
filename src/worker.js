@@ -96,6 +96,7 @@ export class GameServer extends DurableObject {
       if(m.type==='leave_room'){this.leave(player);player=null;return}
       if(m.type==='ready'){if(room.started)return;player.ready=Boolean(m.ready);this.broadcastLobby(room);return}
       if(m.type==='start_match'){this.startMatch(room,player);return}
+      if(m.type==='self_respawn'){if(player.dead){this.resetPlayer(player);this.sendPlayer(player,{type:'respawn',player:publicPlayer(player)});this.broadcast(room,{type:'player_update',player:publicPlayer(player)});}return}
       if(!room.started)return;
       if(m.type==='state'){
         const x=Number(m.x),z=Number(m.z);if(Number.isFinite(x)&&Number.isFinite(z)){const d=Math.hypot(x-player.x,z-player.z);if(d<=1.2&&moveValid(player.x,player.z,x,z)){player.x=Math.max(-31,Math.min(31,x));player.z=Math.max(-31,Math.min(31,z));}}
