@@ -405,7 +405,6 @@ finishMatch(room){
 
   return;
 }
-}
 });
     server.addEventListener('close',()=>{if(player?.room)this.leave(player)});
     return new Response(null,{status:101,webSocket:client});
