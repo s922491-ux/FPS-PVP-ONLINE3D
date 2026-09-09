@@ -96,6 +96,7 @@ export class GameServer extends DurableObject {
       if(m.type==='leave_room'){this.leave(player);player=null;return}
       if(m.type==='ready'){if(room.started)return;player.ready=Boolean(m.ready);this.broadcastLobby(room);return}
       if(m.type==='start_match'){this.startMatch(room,player);return}
+      if(m.type==='self_kill'){if(!player.dead){player.hp=0;player.dead=true;player.deaths++;this.broadcast(room,{type:'death',victim:player.id,killer:player.id});this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});}return}
       if(m.type==='self_respawn'){if(player.dead){this.resetPlayer(player);this.sendPlayer(player,{type:'respawn',player:publicPlayer(player)});this.broadcast(room,{type:'player_update',player:publicPlayer(player)});}return}
       if(!room.started)return;
       if(m.type==='state'){
