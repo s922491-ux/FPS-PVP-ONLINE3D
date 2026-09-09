@@ -450,6 +450,12 @@ function connect() {
       return;
     }
 
+    if (m.type === "boss_spawn") {
+      createBossMesh(m.boss);
+      feed("👑 BOSS HAS APPEARED!");
+      return;
+    }
+
     if (m.type === "player_join") {
       applyPlayer(m.player);
       return;
