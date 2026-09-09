@@ -109,5 +109,76 @@ h1,h2{margin:0 0 8px}.sub{opacity:.7;margin-bottom:18px}
 
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}</script>
 <script type="module" src="./main.js"></script>
+<script>
+const radar = document.getElementById("radar");
+const rctx = radar.getContext("2d");
+let radarCooldown = 0;
+let radarActive = false;
+let radarTimer = 0;
+
+addEventListener("keydown", e => {
+  if (e.code === "KeyQ" && !e.repeat && radarCooldown <= 0 && window.__fpsState) {
+    radarActive = true;
+    radarTimer = 4;
+    radarCooldown = 10;
+  }
+});
+
+setInterval(() => {
+  radarCooldown = Math.max(0, radarCooldown - 0.1);
+  radarTimer = Math.max(0, radarTimer - 0.1);
+  if (radarTimer <= 0) radarActive = false;
+
+  rctx.clearRect(0, 0, 160, 160);
+  rctx.fillStyle = "rgba(0,20,30,.65)";
+  rctx.beginPath();
+  rctx.arc(80,80,78,0,Math.PI*2);
+  rctx.fill();
+
+  rctx.strokeStyle = "#6cf";
+  rctx.lineWidth = 2;
+  rctx.beginPath();
+  rctx.arc(80,80,78,0,Math.PI*2);
+  rctx.stroke();
+
+  rctx.strokeStyle = "#245";
+  rctx.beginPath();
+  rctx.moveTo(80,5); rctx.lineTo(80,155);
+  rctx.moveTo(5,80); rctx.lineTo(155,80);
+  rctx.stroke();
+
+  rctx.fillStyle = "#6f6";
+  rctx.beginPath();
+  rctx.arc(80,80,5,0,Math.PI*2);
+  rctx.fill();
+
+  if (radarActive) {
+    const me = window.__fpsState.getMe();
+    const others = window.__fpsState.getOthers();
+    if (me && others) {
+      rctx.fillStyle = "#f44";
+      for (const g of others.values()) {
+        const x = g.position.x - me.x;
+        const z = g.position.z - me.z;
+        const scale = 2.2;
+        const rx = 80 + x * scale;
+        const rz = 80 + z * scale;
+        if (rx > 8 && rx < 152 && rz > 8 && rz < 152) {
+          rctx.beginPath();
+          rctx.arc(rx,rz,5,0,Math.PI*2);
+          rctx.fill();
+        }
+      }
+    }
+  }
+
+  rctx.fillStyle = "#fff";
+  rctx.font = "12px Arial";
+  rctx.fillText(
+    radarCooldown > 0 ? "RADAR " + radarCooldown.toFixed(1) + "s" : "RADAR READY",
+    8, 15
+  );
+}, 100);
+</script>
 </body>
 </html>
