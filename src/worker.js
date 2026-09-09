@@ -70,6 +70,28 @@ export class GameServer extends DurableObject {
   lobbyState(room){return {type:'lobby_state',roomId:room.id,roomName:room.name,hostId:room.hostId,max:MAX_PLAYERS,started:room.started,players:[...room.players.values()].map(publicPlayer)}}
   broadcastLobby(room){this.broadcast(room,this.lobbyState(room),null)}
   createRoom(name){
+  spawnBoss(room){
+  if(!room?.started || room.boss.active || room.boss.defeatedAt)return;
+
+  room.boss.active=true;
+  room.boss.hp=BOSS_HP;
+  room.boss.maxHp=BOSS_HP;
+  room.boss.x=0;
+  room.boss.z=10;
+  room.boss.startedAt=Date.now();
+  room.boss.defeatedAt=0;
+
+  this.broadcast(room,{
+    type:'boss_spawn',
+    boss:{
+      active:true,
+      hp:room.boss.hp,
+      maxHp:room.boss.maxHp,
+      x:room.boss.x,
+      z:room.boss.z
+    }
+  });
+}
   const room={
     id:uid(),
     name:cleanRoomName(name),
