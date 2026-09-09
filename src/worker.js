@@ -119,13 +119,85 @@ spawnBoss(room){
   addPlayer(ws,name,room){const [x,z]=spawnPoint();const p={ws,id:uid(),name:cleanName(name),x,z,yaw:0,pitch:0,hp:100,y:0,crouching:false,sprinting:false,floor:'concrete',mag:WEAPONS[0].magazine,reserve:WEAPONS[0].reserve,reloading:false,dead:false,weaponId:WEAPONS[0].id,kills:0,deaths:0,lastShot:0,ready:false,room};room.players.set(p.id,p);this.players.set(p.id,p);this.sendPlayer(p,{type:'joined',id:p.id,roomId:room.id});return p}
   removePlayer(p){const room=p.room;if(!room)return;room.players.delete(p.id);this.players.delete(p.id);if(room.hostId===p.id){room.hostId=room.players.keys().next().value||null;if(room.hostId){const h=room.players.get(room.hostId);h.ready=true;}}if(room.players.size===0)this.rooms.delete(room.id);else this.broadcastLobby(room);this.broadcastRoomList()}
   leave(p){const room=p.room;const id=p.id;this.removePlayer(p);if(room)this.broadcast(room,{type:'player_leave',id})}
-　startMatch(room,requester){if(room.started)return;if(room.players.size<2){this.sendPlayer(requester,{type:'error',message:'2人以上で開始してください。'});return;}if(room.hostId!==requester.id){this.sendPlayer(requester,{type:'error',message:'ホストだけが開始できます。'});return;}room.started=true;for(const p of room.players.values()){p.kills=0;p.deaths=0;this.resetPlayer(p);p.ready=true;this.sendPlayer(p,{type:'match_start',roomId:room.id});this.sendPlayer(p,{type:'player_update',player:publicPlayer(p)})}this.broadcastLobby(room);this.broadcastRoomList()
-  setTimeout(()=>{
-  if(room.started && !room.boss.active && !room.boss.defeatedAt){
-    this.spawnBoss(room);
+　startMatch(room,requester){
+  if(room.started)return;
+
+  if(room.players.size<2){
+    this.sendPlayer(requester,{
+      type:'error',
+      message:'2人以上で開始してください。'
+    });
+    return;
   }
-}, BOSS_RESPAWN_DELAY * 1000);
-  finishMatch(room){if(!room?.started)return;room.started=false;const ranking=[...room.players.values()].sort((a,b)=>b.kills-a.kills).map(p=>({id:p.id,name:p.name,kills:p.kills,deaths:p.deaths}));for(const p of room.players.values()){p.ready=p.id===room.hostId;this.sendPlayer(p,{type:'match_end',ranking})}this.broadcastLobby(room);this.broadcastRoomList()}
+
+  if(room.hostId!==requester.id){
+    this.sendPlayer(requester,{
+      type:'error',
+      message:'ホストだけが開始できます。'
+    });
+    return;
+  }
+
+  room.started=true;
+
+  room.boss.active=false;
+  room.boss.hp=0;
+  room.boss.defeatedAt=0;
+  room.boss.startedAt=0;
+
+  for(const p of room.players.values()){
+    p.kills=0;
+    p.deaths=0;
+    this.resetPlayer(p);
+    p.ready=true;
+
+    this.sendPlayer(p,{
+      type:'match_start',
+      roomId:room.id
+    });
+
+    this.sendPlayer(p,{
+      type:'player_update',
+      player:publicPlayer(p)
+    });
+  }
+
+  this.broadcastLobby(room);
+  this.broadcastRoomList();
+
+  setTimeout(()=>{
+    if(room.started && !room.boss.active && !room.boss.defeatedAt){
+      this.spawnBoss(room);
+    }
+  },BOSS_RESPAWN_DELAY*1000);
+}
+
+finishMatch(room){
+  if(!room?.started)return;
+
+  room.started=false;
+
+  const ranking=[...room.players.values()]
+    .sort((a,b)=>b.kills-a.kills)
+    .map(p=>({
+      id:p.id,
+      name:p.name,
+      kills:p.kills,
+      deaths:p.deaths
+    }));
+
+  for(const p of room.players.values()){
+    p.ready=p.id===room.hostId;
+    this.sendPlayer(p,{
+      type:'match_end',
+      ranking
+    });
+  }
+
+  this.broadcastLobby(room);
+  this.broadcastRoomList();
+}
+
   quickMatch(name){let room=[...this.rooms.values()].find(r=>!r.started&&r.players.size>0&&r.players.size<MAX_PLAYERS);if(!room)room=this.createRoom('QUICK MATCH');return room}
   async fetch(request){
     if(request.headers.get('Upgrade')!=='websocket')return new Response('Expected WebSocket',{status:426});
