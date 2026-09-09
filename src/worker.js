@@ -1,7 +1,7 @@
 import { WEAPONS } from './weapons.js';
 import { DurableObject } from 'cloudflare:workers';
 
-const MAX_PLAYERS = 8;
+const MAX_PLAYERS = 16;
 const KILL_LIMIT = 10;
 const BOSS_HP = 1500;
 const BOSS_RESPAWN_DELAY = 20;
