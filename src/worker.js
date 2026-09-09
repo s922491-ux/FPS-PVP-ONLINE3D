@@ -69,7 +69,30 @@ export class GameServer extends DurableObject {
   broadcastRoomList(){const data={type:'room_list',rooms:this.roomList()};for(const p of this.players.values())this.sendPlayer(p,data)}
   lobbyState(room){return {type:'lobby_state',roomId:room.id,roomName:room.name,hostId:room.hostId,max:MAX_PLAYERS,started:room.started,players:[...room.players.values()].map(publicPlayer)}}
   broadcastLobby(room){this.broadcast(room,this.lobbyState(room),null)}
-  createRoom(name){const room={id:uid(),name:cleanRoomName(name),players:new Map(),hostId:null,max:MAX_PLAYERS,started:false};this.rooms.set(room.id,room);return room}
+  createRoom(name){
+  const room={
+    id:uid(),
+    name:cleanRoomName(name),
+    players:new Map(),
+    hostId:null,
+    max:MAX_PLAYERS,
+    started:false,
+
+    // 👑 BOSS HUNT
+    boss:{
+      active:false,
+      hp:0,
+      maxHp:BOSS_HP,
+      x:0,
+      z:0,
+      startedAt:0,
+      defeatedAt:0
+    }
+  };
+
+  this.rooms.set(room.id,room);
+  return room;
+}
   resetPlayer(p){[p.x,p.z]=spawnPoint();p.hp=100;p.y=0;p.crouching=false;p.sprinting=false;p.floor='concrete';const w=getWeapon(p.weaponId);p.mag=w.magazine;p.reserve=w.reserve;p.reloading=false;p.dead=false;p.ready=false}
   addPlayer(ws,name,room){const [x,z]=spawnPoint();const p={ws,id:uid(),name:cleanName(name),x,z,yaw:0,pitch:0,hp:100,y:0,crouching:false,sprinting:false,floor:'concrete',mag:WEAPONS[0].magazine,reserve:WEAPONS[0].reserve,reloading:false,dead:false,weaponId:WEAPONS[0].id,kills:0,deaths:0,lastShot:0,ready:false,room};room.players.set(p.id,p);this.players.set(p.id,p);this.sendPlayer(p,{type:'joined',id:p.id,roomId:room.id});return p}
   removePlayer(p){const room=p.room;if(!room)return;room.players.delete(p.id);this.players.delete(p.id);if(room.hostId===p.id){room.hostId=room.players.keys().next().value||null;if(room.hostId){const h=room.players.get(room.hostId);h.ready=true;}}if(room.players.size===0)this.rooms.delete(room.id);else this.broadcastLobby(room);this.broadcastRoomList()}
