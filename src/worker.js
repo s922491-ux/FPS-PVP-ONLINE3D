@@ -3,6 +3,10 @@ import { DurableObject } from 'cloudflare:workers';
 
 const MAX_PLAYERS = 8;
 const KILL_LIMIT = 10;
+const BOSS_HP = 1500;
+const BOSS_RESPAWN_DELAY = 20;
+const BOSS_CURSE_DURATION = 60;
+const BOSS_AMMO_DURATION = 180;
 const SOLIDS = [
   [-6, 6, -4, 4], [-24, -14, -6, 6], [14, 24, -6, 6],
   [-6, 6, 14, 24], [-6, 6, -24, -14], [-24, -14, 14, 24], [14, 24, 14, 24]
