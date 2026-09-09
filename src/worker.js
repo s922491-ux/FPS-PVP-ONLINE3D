@@ -106,6 +106,31 @@ export class GameServer extends DurableObject {
       if(m.type==='select_weapon'){const w=getWeapon(m.weaponId);if(player.dead||player.reloading)return;player.weaponId=w.id;player.mag=w.magazine;player.reserve=w.reserve;this.broadcast(room,{type:'player_update',player:publicPlayer(player)});return}
       if(m.type==='reload'){const w=getWeapon(player.weaponId);if(player.reloading||player.dead||player.mag>=w.magazine||player.reserve<=0)return;player.reloading=true;this.broadcast(room,{type:'player_update',player:publicPlayer(player)});setTimeout(()=>{if(!player.room||player.room.id!==room.id||!room.players.has(player.id))return;const w2=getWeapon(player.weaponId);const n=Math.min(w2.magazine-player.mag,player.reserve);player.mag+=n;player.reserve-=n;player.reloading=false;this.broadcast(room,{type:'player_update',player:publicPlayer(player)})},Math.round(w.reload*1000));return}
       if(m.type==='grenade'){if(player.dead)return;const dx=Number(m.dx)||0,dz=Number(m.dz)||0,len=Math.hypot(dx,dz)||1;const ex=Math.max(-30,Math.min(30,player.x+(dx/len)*10)),ez=Math.max(-30,Math.min(30,player.z+(dz/len)*10));this.broadcast(room,{type:'grenade',x:player.x,y:player.y||1.2,z:player.z,dx:dx/len,dy:Number(m.dy)||.15,dz:dz/len});setTimeout(()=>{if(!room.started)return;this.broadcast(room,{type:'explosion',x:ex,y:1,z:ez});for(const q of room.players.values()){if(q.dead)continue;const d=Math.hypot(q.x-ex,q.z-ez);if(d<=6){const dmg=Math.max(8,Math.round(70*(1-d/6)));q.hp-=dmg;this.broadcast(room,{type:'hit',victim:q.id,hp:Math.max(0,q.hp),killer:player.id,attackerX:player.x,attackerZ:player.z});this.sendPlayer(q,{type:'player_update',player:publicPlayer(q)});if(q.hp<=0){q.hp=0;q.dead=true;q.deaths++;player.kills++;this.broadcast(room,{type:'death',victim:q.id,killer:player.id});if(player.kills>=KILL_LIMIT)setTimeout(()=>this.finishMatch(room),250);setTimeout(()=>{if(!room.players.has(q.id))return;this.resetPlayer(q);this.broadcast(room,{type:'respawn',player:publicPlayer(q)})},2000)}}}this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)})},700);return}
+      if(m.type==='shoot'&&(getWeapon(player.weaponId).category==='Rocket'||getWeapon(player.weaponId).category==='GrenadeLauncher')){
+  const w=getWeapon(player.weaponId),now=Date.now(),minInterval=Math.max(45,Math.round(60000/w.fireRate));
+  if(player.reloading||player.dead||player.mag<=0||now-player.lastShot<minInterval)return;
+  player.lastShot=now; player.mag--;
+  const dx=Math.sin(player.yaw)*Math.cos(player.pitch),dz=-Math.cos(player.yaw)*Math.cos(player.pitch);
+  const dist=w.category==='Rocket'?18:14,ex=Math.max(-31,Math.min(31,player.x+dx*dist)),ez=Math.max(-31,Math.min(31,player.z+dz*dist));
+  const radius=w.category==='Rocket'?6:4.5;
+  this.broadcast(room,{type:'explosion',x:ex,y:1,z:ez});
+  for(const q of room.players.values()){
+    if(q.dead||q===player)continue;
+    const d=Math.hypot(q.x-ex,q.z-ez);
+    if(d>radius)continue;
+    const damage=Math.max(10,Math.round(w.damage*(1-d/radius)));
+    q.hp-=damage;
+    this.sendPlayer(q,{type:'player_update',player:publicPlayer(q)});
+    if(q.hp<=0){
+      q.hp=0;q.dead=true;q.deaths++;player.kills++;
+      this.broadcast(room,{type:'death',victim:q.id,killer:player.id});
+      setTimeout(()=>{if(room.players.has(q.id)){this.resetPlayer(q);this.broadcast(room,{type:'respawn',player:publicPlayer(q)})}},2000);
+      if(player.kills>=KILL_LIMIT)setTimeout(()=>this.finishMatch(room),250);
+    }
+  }
+  this.sendPlayer(player,{type:'player_update',player:publicPlayer(player)});
+  return;
+}
       if(m.type==='shoot'){const w=getWeapon(player.weaponId),now=Date.now(),minInterval=Math.max(45,Math.round(60000/w.fireRate));if(player.reloading||player.dead||player.mag<=0||now-player.lastShot<minInterval)return;player.lastShot=now;player.mag--;this.broadcast(room,{type:'shoot',id:player.id});let target=null,best=Infinity;const eyeY=(player.y||0)+(player.crouching?1.15:1.72),dirX=Math.sin(player.yaw)*Math.cos(player.pitch),dirY=-Math.sin(player.pitch),dirZ=-Math.cos(player.yaw)*Math.cos(player.pitch);for(const q of room.players.values()){if(q===player||q.dead)continue;const tx=q.x-player.x,tz=q.z-player.z,d=Math.hypot(tx,tz);if(d>w.range||segmentHitsSolid(player.x,player.z,q.x,q.z))continue;const bodyY=(q.y||0)+(q.crouching?1.05:1.55),vx=q.x-player.x,vy=bodyY-eyeY,vz=q.z-player.z,len=Math.hypot(vx,vy,vz)||1,dot=(vx/len)*dirX+(vy/len)*dirY+(vz/len)*dirZ,tol=Math.max(.035,.34/Math.max(1,d));if(dot>1-tol&&d<best){best=d;target=q}}
         if(target){
   const damage = w.damage || 10;
