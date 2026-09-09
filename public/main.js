@@ -25,6 +25,7 @@ const hud = document.querySelector("#hud");
 const deathEl = document.querySelector("#death");
 let weaponIndex = 0;
 let currentWeapon = WEAPONS[weaponIndex];
+window.__fpsState = { getMe: () => me, getOthers: () => others };
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x080b10);
