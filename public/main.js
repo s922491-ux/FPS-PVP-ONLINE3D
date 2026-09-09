@@ -482,6 +482,7 @@ addEventListener("keydown", e => {
   if(e.code==='Digit0') selectWeapon(9);
   if(e.code==='KeyE') swapWeapon();
   if(e.code==='KeyR'){ playReload(); startReloadVisual(); send({type:'reload'}); }
+  if(e.code==='KeyL'){ send({type:'self_respawn'}); }
   if(e.code==='KeyF') fireOnce();
   if(e.code==='KeyG') throwGrenade();
   if(e.code==='ShiftRight'){ ads=true; }
