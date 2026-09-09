@@ -209,6 +209,57 @@ function playerMesh(p) {
   g.userData={target:new THREE.Vector3(),targetYaw:0,player:p,limbs:{l,r,lArm,rArm},walk:0};scene.add(g);return g;
 }
 
+let bossMesh = null;
+
+function createBossMesh(boss){
+  if(bossMesh){
+    scene.remove(bossMesh);
+  }
+
+  const g = new THREE.Group();
+
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: 0x5b1aff,
+    roughness: .5,
+    metalness: .35
+  });
+
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0xff244f
+  });
+
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(1.7, 20, 16),
+    bodyMat
+  );
+  body.position.y = 2.2;
+  body.castShadow = true;
+  g.add(body);
+
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(.75, 16, 12),
+    glowMat
+  );
+  core.position.set(0,2.2,1.35);
+  g.add(core);
+
+  const eye1 = new THREE.Mesh(
+    new THREE.SphereGeometry(.22, 12, 8),
+    glowMat
+  );
+  eye1.position.set(-.48,2.65,1.55);
+  g.add(eye1);
+
+  const eye2 = eye1.clone();
+  eye2.position.x = .48;
+  g.add(eye2);
+
+  g.position.set(boss.x,0,boss.z);
+  g.userData.boss = true;
+
+  scene.add(g);
+  bossMesh = g;
+}
 function applyPlayer(p) {
   if (!p) return;
   if (me?.id === p.id) {
